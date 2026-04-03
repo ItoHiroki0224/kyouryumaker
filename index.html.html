@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>あなたっぽい恐竜診断</title>
+    <style>
+        /* 見た目を整えるCSS */
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #e0f2f1; color: #333; text-align: center; padding: 20px; }
+        .container { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
+        h1 { color: #2e7d32; font-size: 1.5em; margin-bottom: 20px; }
+        .question { margin-bottom: 25px; text-align: left; background: #f9f9f9; padding: 15px; border-radius: 10px; border-left: 5px solid #81c784; }
+        .question p { font-weight: bold; margin-top: 0; }
+        label { display: block; margin: 8px 0; cursor: pointer; }
+        input[type="radio"] { margin-right: 10px; transform: scale(1.2); }
+        button { background-color: #4caf50; color: white; border: none; padding: 12px 24px; font-size: 1em; border-radius: 30px; cursor: pointer; transition: background 0.3s; width: 100%; margin-top: 10px; }
+        button:hover { background-color: #388e3c; }
+        
+        /* 結果画面のスタイル */
+        #result-area { display: none; animation: fadeIn 0.5s; }
+        #dino-img { max-width: 200px; height: auto; margin: 20px 0; border-radius: 10px; }
+        #result-title { font-size: 1.3em; font-weight: bold; color: #1b5e20; }
+        #result-desc { text-align: left; background: #e8f5e9; padding: 15px; border-radius: 10px; line-height: 1.6; }
+        .restart-btn { background-color: #888; margin-top: 20px; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🦖 あなたっぽい恐竜診断 🦕</h1>
+
+    <div id="quiz-area">
+        <div class="question">
+            <p>Q1. 友達と遊ぶなら？</p>
+            <label><input type="radio" name="q1" value="leader" required> みんなを引っ張って遊びたい</label>
+            <label><input type="radio" name="q1" value="sub"> みんなの後をついていきたい</label>
+        </div>
+
+        <div class="question">
+            <p>Q2. 新しい場所に行くときは？</p>
+            <label><input type="radio" name="q2" value="leader"> ドキドキするけど楽しみ！</label>
+            <label><input type="radio" name="q2" value="sub"> 少し不安で、よく調べてから行く</label>
+        </div>
+
+        <div class="question">
+            <p>Q3. 食べ物の好みは？</p>
+            <label><input type="radio" name="q3" value="meat"> お肉が大好き！</label>
+            <label><input type="radio" name="q3" value="plant"> 野菜や果物が好き、またはバランス重視</label>
+        </div>
+
+        <div class="question">
+            <p>Q4. トラブルが起きたら？</p>
+            <label><input type="radio" name="q4" value="leader"> すぐに行動して解決する</label>
+            <label><input type="radio" name="q4" value="sub"> じっくり考えてから行動する</label>
+        </div>
+
+        <div class="question">
+            <p>Q5. 自分の性格を一言で言うと？</p>
+            <label><input type="radio" name="q5" value="leader"> 負けず嫌いで行動派</label>
+            <label><input type="radio" name="q5" value="sub"> おだやかでマイペース</label>
+        </div>
+
+        <button onclick="diagnose()">診断する（ガオー！）</button>
+    </div>
+
+    <div id="result-area">
+        <h2>あなたは...</h2>
+        <img id="dino-img" src="" alt="恐竜画像">
+        <p id="result-title"></p>
+        <div id="result-desc"></div>
+        <button class="restart-btn" onclick="location.reload()">もう一度診断する</button>
+    </div>
+</div>
+
+<script>
+    function diagnose() {
+        // 1. 全部の質問に答えたかチェック
+        const questions = ['q1', 'q2', 'q3', 'q4', 'q5'];
+        let answers = {};
+        let allAnswered = true;
+
+        questions.forEach(q => {
+            const checked = document.querySelector(`input[name="${q}"]:checked`);
+            if (checked) {
+                answers[q] = checked.value;
+            } else {
+                allAnswered = false;
+            }
+        });
+
+        if (!allAnswered) {
+            alert("すべての質問に答えてね！");
+            return;
+        }
+
+        // 2. 集計ロジック（肉食度とリーダー度で判定）
+        let leaderScore = 0;
+        let meatScore = 0;
+
+        if (answers.q1 === 'leader') leaderScore++;
+        if (answers.q2 === 'leader') leaderScore++;
+        if (answers.q4 === 'leader') leaderScore++;
+        if (answers.q5 === 'leader') leaderScore++;
+        
+        if (answers.q3 === 'meat') meatScore++;
+
+        // 3. 結果の出し分けデータ
+        let resultType = "";
+
+        if (meatScore > 0 && leaderScore >= 3) {
+            resultType = "tyrano"; // 肉食・行動派
+        } else if (meatScore > 0 && leaderScore < 3) {
+            resultType = "raptor"; // 肉食・慎重派
+        } else if (meatScore === 0 && leaderScore >= 2) {
+            resultType = "tricera"; // 草食・行動派
+        } else {
+            resultType = "braquio"; // 草食・マイペース
+        }
+
+        const dinoData = {
+            "tyrano": {
+                title: "暴君竜 ティラノサウルス",
+                img: "https://raw.githubusercontent.com/gist-hosting/image-hosting/main/dino_tyrano.png", // ★ここに画像URL
+                desc: "あなたは圧倒的な存在感を持つリーダータイプ！目標に向かって真っ直ぐ突き進む姿は、まさに恐竜の王様です。でも、たまには周りを見渡すのを忘れないでね。"
+            },
+            "raptor": {
+                title: "俊足のハンター ヴェロキラプトル",
+                img: "https://raw.githubusercontent.com/gist-hosting/image-hosting/main/dino_raptor.png", // ★ここに画像URL
+                desc: "あなたは頭脳明晰で、チャンスを逃さない慎重なハンタータイプ。計画的に物事を進め、ここぞという時に実力を発揮します。チームワークを大切にするとさらに吉。"
+            },
+            "tricera": {
+                title: "角竜 トリケラトプス",
+                img: "https://raw.githubusercontent.com/gist-hosting/image-hosting/main/dino_tricera.png", // ★ここに画像URL
+                desc: "あなたはおだやかですが、芯がとても強いしっかり者タイプ。友達を守る優しさがあり、困難にも正面から立ち向かう勇気を持っています。みんなからの信頼も厚いでしょう。"
+            },
+            "braquio": {
+                title: "巨竜 ブラキオサウルス",
+                img: "https://raw.githubusercontent.com/gist-hosting/image-hosting/main/dino_braquio.png", // ★ここに画像URL
+                desc: "あなたはマイペースで、広い心を持った芸術家タイプ。細かいことは気にせず、長い目で物事を見ることができます。あなたの周りには、自然と人が集まり、癒されているはずです。"
+            }
+        };
+
+        const finalResult = dinoData[resultType];
+
+        // 4. 結果画面への反映
+        document.getElementById('quiz-area').style.display = 'none';
+        document.getElementById('result-area').style.display = 'block';
+        document.getElementById('dino-img').src = finalResult.img;
+        document.getElementById('dino-img').alt = finalResult.title;
+        document.getElementById('result-title').innerText = finalResult.title;
+        document.getElementById('result-desc').innerText = finalResult.desc;
+        
+        // 画面上部にスクロール
+        window.scrollTo(0, 0);
+    }
+</script>
+
+</body>
+</html>
